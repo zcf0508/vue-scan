@@ -42,8 +42,14 @@ import VueScan, { type VueScanOptions } from 'z-vue-scan'
 
 import App from './App.vue'
 
+const isProduction = import.meta.env.PROD // or `process.env.NODE_ENV === 'production'`
+
 const app = createApp(App)
-app.use<VueScanOptions>(VueScan, {})
+
+if(!isProduction) {
+  app.use<VueScanOptions>(VueScan, {})
+}
+
 app.mount('#app')
 ```
 
@@ -55,7 +61,11 @@ import Vue from 'vue'
 import VueScan, { type VueScanBaseOptions } from 'z-vue-scan/vue2'
 import App from './App.vue'
 
-Vue.use<VueScanBaseOptions>(VueScan, {})
+const isProduction = import.meta.env.PROD // or `process.env.NODE_ENV === 'production'`
+
+if(!isProduction) {
+  Vue.use<VueScanBaseOptions>(VueScan, {})
+}
 
 new Vue({
   render: h => h(App),
