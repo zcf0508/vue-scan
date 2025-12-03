@@ -46,7 +46,7 @@ const isProduction = import.meta.env.PROD // or `process.env.NODE_ENV === 'produ
 
 const app = createApp(App)
 
-if(!isProduction) {
+if (!isProduction) {
   app.use<VueScanOptions>(VueScan, {})
 }
 
@@ -63,7 +63,7 @@ import App from './App.vue'
 
 const isProduction = import.meta.env.PROD // or `process.env.NODE_ENV === 'production'`
 
-if(!isProduction) {
+if (!isProduction) {
   Vue.use<VueScanBaseOptions>(VueScan, {})
 }
 
