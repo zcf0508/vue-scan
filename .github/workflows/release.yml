@@ -16,10 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v5
         with:
           node-version: lts/*
           registry-url: 'https://registry.npmjs.org'
+
+      - run: npm i -g npm@latest
 
       - run: npx changelogithub
         env:
@@ -36,9 +38,6 @@ jobs:
 
       - name: Publish vue scan to NPM
         run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          NPM_CONFIG_PROVENANCE: true
 
       # publish devpilot plugin
 
@@ -49,9 +48,6 @@ jobs:
       - name: Publish devpilot plugin to NPM
         working-directory: packages/devpilot-plugin-vue-scan
         run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          NPM_CONFIG_PROVENANCE: true
 
       # publish nuxt module
 
@@ -66,9 +62,6 @@ jobs:
       - name: Publish vue scan nuxt module to NPM
         working-directory: packages/nuxt
         run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          NPM_CONFIG_PROVENANCE: true
 
   createrelease:
     name: Create Release
