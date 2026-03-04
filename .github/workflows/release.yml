@@ -40,6 +40,19 @@ jobs:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
           NPM_CONFIG_PROVENANCE: true
 
+      # publish devpilot plugin
+
+      - name: Build devpilot plugin
+        working-directory: packages/devpilot-plugin-vue-scan
+        run: pnpm run build
+
+      - name: Publish devpilot plugin to NPM
+        working-directory: packages/devpilot-plugin-vue-scan
+        run: pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NPM_CONFIG_PROVENANCE: true
+
       # publish nuxt module
 
       - name: Prepare vue scan nuxt module

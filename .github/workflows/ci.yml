@@ -28,5 +28,8 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Typecheck devpilot plugin
+        run: pnpm -C packages/devpilot-plugin-vue-scan run typecheck
+
       # - name: Test
       #   run: pnpm run test
