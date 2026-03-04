@@ -1,0 +1,51 @@
+{
+  "name": "devpilot-plugin-vue-scan",
+  "type": "module",
+  "version": "0.0.35",
+  "description": "Vue Scan plugin for DevPilot",
+  "author": "zcf0508 <zcf0508@live.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zcf0508/vue-scan.git"
+  },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client": "./dist/client/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*.d.ts",
+        "./*"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck:client": "tsc --project tsconfig.client.json --noEmit",
+    "typecheck:node": "tsc --noEmit",
+    "typecheck": "pnpm run typecheck:client && pnpm run typecheck:node",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@types/ws": "^8.18.1",
+    "birpc": "^4.0.0",
+    "es-toolkit": "^1.44.0",
+    "hookable": "^6.0.1",
+    "mitt": "^3.0.1",
+    "unplugin": "^3.0.0",
+    "unplugin-devpilot": "^0.0.11",
+    "ws": "^8.19.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsdown": "^0.20.1"
+  }
+}
