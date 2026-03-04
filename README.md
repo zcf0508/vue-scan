@@ -98,6 +98,16 @@ export default defineNuxtConfig({
 })
 ```
 
+### DevPilot Plugin (MCP for LLMs)
+
+```bash
+pnpm add unplugin-devpilot devpilot-plugin-vue-scan -D
+```
+
+The [DevPilot plugin](./packages/devpilot-plugin-vue-scan) exposes Vue component render performance data to LLMs via MCP. It tracks component re-renders in real time and provides a `queryVueScanData` tool that returns per-component aggregated summaries with source code locations — enabling LLMs to analyze render performance and pinpoint issues.
+
+See [devpilot-plugin-vue-scan README](./packages/devpilot-plugin-vue-scan/README.md) for details.
+
 ## Development
 
 ```bash
