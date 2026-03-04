@@ -17,11 +17,6 @@ export class VueScanDataStore {
   }
 
   query(params: QueryParams): QueryResult {
-    console.log('[vue-scan] query params:', JSON.stringify(params))
-    console.log('[vue-scan] buffer size:', this.events.length)
-    if (this.events.length > 0) {
-      console.log('[vue-scan] first event:', JSON.stringify(this.events[0]))
-    }
     let filtered = [...this.events]
 
     if (params.componentName) {

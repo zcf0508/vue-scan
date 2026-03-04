@@ -69,8 +69,6 @@ function createDataReportHook(instance: VueInstance, client: DevpilotClient<VueS
   const sourceLocation = getSourceLocation(instance)
   const isUserComponent = isFromUserCode(sourceLocation)
 
-  console.debug(`[vue-scan] hook created: ${name}, source=${sourceLocation}, isUser=${isUserComponent}`)
-
   return () => {
     const runtime = window.__VUE_SCAN_RUNTIME__
     if (!runtime?.isRecording)
