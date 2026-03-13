@@ -28,7 +28,7 @@ export function getCurrentFps(): number {
   return Math.round(frameTimestamps.length * 1000 / WINDOW_MS)
 }
 
-export function stopFpsMonitor() {
+export function stopFpsMonitor(): void {
   if (rafId !== null) {
     cancelAnimationFrame(rafId)
     rafId = null
