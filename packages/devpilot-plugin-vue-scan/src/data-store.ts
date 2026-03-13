@@ -1,5 +1,11 @@
 import type { ComponentSummary, ComponentUpdateEvent, QueryParams, QueryResult } from './types'
 
+function normalize(name: string): string {
+  return name
+    .replace(/[-_]/g, '')
+    .toLowerCase()
+}
+
 export class VueScanDataStore {
   private events: ComponentUpdateEvent[] = []
   private maxEvents = 10000
@@ -20,8 +26,9 @@ export class VueScanDataStore {
     let filtered = [...this.events]
 
     if (params.componentName) {
+      const normalizedQuery = normalize(params.componentName)
       filtered = filtered.filter(e =>
-        e.componentName.includes(params.componentName!),
+        normalize(e.componentName).includes(normalizedQuery),
       )
     }
 

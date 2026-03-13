@@ -33,7 +33,7 @@ Monitor and analyze Vue component render performance via real-time update event 
 | Parameter | Default | Purpose |
 |-----------|---------|---------|
 | `limit` | 50 | Max components to return |
-| `componentName` | - | Filter by name (partial match) |
+| `componentName` | - | Filter by name (partial match, case-insensitive, ignores `-` and `_`) |
 | `timeRange` | - | `{ start, end }` timestamps in ms (0 values ignored) |
 | `minUpdateCount` | - | Only components updated >= N times |
 | `onlyInViewport` | - | Exclude off-screen renders |
@@ -60,7 +60,7 @@ Monitor and analyze Vue component render performance via real-time update event 
 1. queryVueScanData({ sortBy: "totalUpdates" })
    → Review top re-rendering components with source locations
 2. queryVueScanData({ componentName: "UserList", sortBy: "updatesPerSecond" })
-   → Check specific component's render frequency
+   → Find the most frequently re-rendering component among partial matches (e.g., UserList, UserListItem, UserListHeader)
 3. queryVueScanData({ onlyUserComponents: false, sortBy: "totalUpdates" })
    → Include library components to see full picture
 ```
