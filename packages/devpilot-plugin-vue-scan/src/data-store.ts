@@ -45,6 +45,12 @@ export class VueScanDataStore {
       )
     }
 
+    if (params.minRenderTime) {
+      filtered = filtered.filter(e =>
+        e.renderTime != null && e.renderTime >= params.minRenderTime!,
+      )
+    }
+
     if (params.onlyInViewport) {
       filtered = filtered.filter(e => e.isInViewport)
     }
@@ -57,6 +63,8 @@ export class VueScanDataStore {
     const componentMap = new Map<string, {
       sourceLocation?: string
       timestamps: number[]
+      renderTimes: number[]
+      fpsValues: number[]
     }>()
 
     for (const event of filtered) {
@@ -64,11 +72,17 @@ export class VueScanDataStore {
       const existing = componentMap.get(key)
       if (existing) {
         existing.timestamps.push(event.timestamp)
+        if (event.renderTime != null)
+          existing.renderTimes.push(event.renderTime)
+        if (event.fps > 0)
+          existing.fpsValues.push(event.fps)
       }
       else {
         componentMap.set(key, {
           sourceLocation: event.sourceLocation,
           timestamps: [event.timestamp],
+          renderTimes: event.renderTime != null ? [event.renderTime] : [],
+          fpsValues: event.fps > 0 ? [event.fps] : [],
         })
       }
     }
@@ -83,11 +97,19 @@ export class VueScanDataStore {
         const componentName = rawName === 'Anonymous Component' && data.sourceLocation
           ? `Anonymous (${data.sourceLocation})`
           : rawName
+        const avgRenderTime = data.renderTimes.length > 0
+          ? data.renderTimes.reduce((a, b) => a + b, 0) / data.renderTimes.length
+          : undefined
+        const avgFps = data.fpsValues.length > 0
+          ? Math.round(data.fpsValues.reduce((a, b) => a + b, 0) / data.fpsValues.length)
+          : undefined
         return {
           componentName,
           sourceLocation: data.sourceLocation,
           totalUpdates,
           updatesPerSecond: durationSec > 0 ? totalUpdates / durationSec : totalUpdates,
+          avgRenderTime,
+          avgFps,
           firstUpdate,
           lastUpdate,
         }
@@ -98,6 +120,7 @@ export class VueScanDataStore {
       switch (params.sortBy) {
         case 'totalUpdates': return b.totalUpdates - a.totalUpdates
         case 'updatesPerSecond': return b.updatesPerSecond - a.updatesPerSecond
+        case 'renderTime': return (b.avgRenderTime ?? 0) - (a.avgRenderTime ?? 0)
         case 'componentName': return a.componentName.localeCompare(b.componentName)
         default: return b.totalUpdates - a.totalUpdates
       }

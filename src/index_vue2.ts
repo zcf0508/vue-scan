@@ -1,7 +1,7 @@
 import type { VueAppInstance } from '@vue/devtools-kit'
 import type { Plugin } from 'vue-demi'
 import type { VueScanBaseOptions } from './types'
-import { createOnBeforeUnmountHook, createOnBeforeUpdateHook } from './core/index'
+import { createOnBeforeUnmountHook, createOnBeforeUpdateHook, createOnMountedHook, createOnUpdatedHook } from './core/index'
 import { isDev } from './utils'
 
 const plugin: Plugin<VueScanBaseOptions> = {
@@ -16,8 +16,16 @@ const plugin: Plugin<VueScanBaseOptions> = {
       mounted() {
         const instance = this as VueAppInstance
 
+        if (!instance.__m) {
+          instance.__m = createOnMountedHook(instance, options)
+        }
+
         if (!instance.__bu) {
-          instance.__bu = createOnBeforeUpdateHook(instance, options)
+          instance.__bu = createOnBeforeUpdateHook(instance)
+        }
+
+        if (!instance.__u) {
+          instance.__u = createOnUpdatedHook(instance, options)
         }
 
         if (!instance.__bum) {
@@ -25,11 +33,17 @@ const plugin: Plugin<VueScanBaseOptions> = {
         }
 
         instance.__vue_scan_injected__ = true
+        instance.__m?.()
       },
       beforeUpdate() {
         const instance = this as VueAppInstance
 
         instance.__bu?.()
+      },
+      updated() {
+        const instance = this as VueAppInstance
+
+        instance.__u?.()
       },
       beforeDestroy() {
         const instance = this as VueAppInstance

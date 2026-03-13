@@ -6,6 +6,7 @@
 import type { DevpilotClient } from 'unplugin-devpilot/client'
 import type { VueScanServerMethods } from './types'
 import { throttle } from 'lodash-es'
+import { getCurrentFps } from './fps'
 import { getComponentBoundingRect, getInstanceName, isInViewport } from './helpers'
 
 interface VueInstance {
@@ -31,8 +32,12 @@ interface VueInstance {
   __vue_scan_injected__?: boolean
   __flashCount?: number
   __flashTimeout?: ReturnType<typeof setTimeout> | null
+  __renderStartTime?: number | null
   __dataReportHook?: (() => void) | null
+  __beforeUpdateHook?: (() => void) | null
+  __updatedHook?: (() => void) | null
   bu?: Array<() => void> | null
+  u?: Array<() => void> | null
   bum?: Array<() => void> | null
 }
 
@@ -59,9 +64,14 @@ function isFromUserCode(source: string | undefined): boolean {
   return !source.includes('node_modules')
 }
 
-function createDataReportHook(instance: VueInstance, client: DevpilotClient<VueScanServerMethods>) {
-  const el = instance?.subTree?.el || instance.$el
-  if (!el)
+function sendReportEvent(
+  instance: VueInstance,
+  client: DevpilotClient<VueScanServerMethods>,
+  phase: 'mount' | 'update',
+  renderTime?: number,
+) {
+  const runtime = window.__VUE_SCAN_RUNTIME__
+  if (!runtime?.isRecording)
     return
 
   const name = getInstanceName(instance)
@@ -69,33 +79,63 @@ function createDataReportHook(instance: VueInstance, client: DevpilotClient<VueS
   const sourceLocation = getSourceLocation(instance)
   const isUserComponent = isFromUserCode(sourceLocation)
 
+  if (!instance.__flashCount) {
+    instance.__flashCount = 0
+  }
+  instance.__flashCount++
+
+  const bounds = getComponentBoundingRect(instance)
+
+  client.rpcCall('vue-scan:recordUpdate', {
+    timestamp: Date.now(),
+    componentName: name,
+    componentId: uuid,
+    phase,
+    renderTime,
+    fps: getCurrentFps(),
+    updateCount: instance.__flashCount,
+    bounds: {
+      width: bounds.width,
+      height: bounds.height,
+      top: bounds.top,
+      left: bounds.left,
+    },
+    isInViewport: isInViewport(bounds),
+    isUserComponent,
+    sourceLocation,
+  }).catch(() => {})
+}
+
+function createBeforeUpdateHook(instance: VueInstance) {
   return () => {
     const runtime = window.__VUE_SCAN_RUNTIME__
     if (!runtime?.isRecording)
       return
+    instance.__renderStartTime = performance.now()
+  }
+}
 
-    if (!instance.__flashCount) {
-      instance.__flashCount = 0
-    }
-    instance.__flashCount++
+function createMountedReportHook(instance: VueInstance, client: DevpilotClient<VueScanServerMethods>) {
+  const el = instance?.subTree?.el || instance.$el
+  if (!el)
+    return
 
-    const bounds = getComponentBoundingRect(instance)
+  return () => {
+    sendReportEvent(instance, client, 'mount')
+  }
+}
 
-    client.rpcCall('vue-scan:recordUpdate', {
-      timestamp: Date.now(),
-      componentName: name,
-      componentId: uuid,
-      updateCount: instance.__flashCount,
-      bounds: {
-        width: bounds.width,
-        height: bounds.height,
-        top: bounds.top,
-        left: bounds.left,
-      },
-      isInViewport: isInViewport(bounds),
-      isUserComponent,
-      sourceLocation,
-    }).catch(() => {})
+function createUpdatedReportHook(instance: VueInstance, client: DevpilotClient<VueScanServerMethods>) {
+  const el = instance?.subTree?.el || instance.$el
+  if (!el)
+    return
+
+  return () => {
+    const renderTime = instance.__renderStartTime != null
+      ? performance.now() - instance.__renderStartTime
+      : undefined
+    instance.__renderStartTime = null
+    sendReportEvent(instance, client, 'update', renderTime)
   }
 }
 
@@ -109,12 +149,26 @@ function injectVueScan(node: HTMLElement, client: DevpilotClient<VueScanServerMe
     // Register mixin to cover future-mounted components
     if (!vueApp.__vue_scan_mixin_installed__) {
       vueApp.mixin({
-        beforeUpdate(this: any) {
+        mounted(this: any) {
           const instance = this.$ as VueInstance
           if (!instance.__dataReportHook) {
-            instance.__dataReportHook = createDataReportHook(instance, client)
+            instance.__dataReportHook = createMountedReportHook(instance, client)
+          }
+          if (!instance.__beforeUpdateHook) {
+            instance.__beforeUpdateHook = createBeforeUpdateHook(instance)
+          }
+          if (!instance.__updatedHook) {
+            instance.__updatedHook = createUpdatedReportHook(instance, client)
           }
           instance.__dataReportHook?.()
+        },
+        beforeUpdate(this: any) {
+          const instance = this.$ as VueInstance
+          instance.__beforeUpdateHook?.()
+        },
+        updated(this: any) {
+          const instance = this.$ as VueInstance
+          instance.__updatedHook?.()
         },
       })
       vueApp.__vue_scan_mixin_installed__ = true
@@ -140,14 +194,24 @@ function injectVueScan(node: HTMLElement, client: DevpilotClient<VueScanServerMe
 
     function mixin(instance: VueInstance) {
       if (instance.subTree?.el && instance.__vue_scan_injected__ !== true) {
-        const dataReport = createDataReportHook(instance, client)
+        const beforeUpdate = createBeforeUpdateHook(instance)
+        const updated = createUpdatedReportHook(instance, client)
 
-        if (dataReport) {
+        if (beforeUpdate) {
           if (instance.bu) {
-            instance.bu.push(dataReport)
+            instance.bu.push(beforeUpdate)
           }
           else {
-            instance.bu = [dataReport]
+            instance.bu = [beforeUpdate]
+          }
+        }
+
+        if (updated) {
+          if (instance.u) {
+            instance.u.push(updated)
+          }
+          else {
+            instance.u = [updated]
           }
         }
 
@@ -176,16 +240,28 @@ function injectVueScan(node: HTMLElement, client: DevpilotClient<VueScanServerMe
 
     function mixin(instance: VueInstance) {
       if (instance?.$el && instance.__vue_scan_injected__ !== true) {
-        const dataReport = createDataReportHook(instance, client)
+        const beforeUpdate = createBeforeUpdateHook(instance)
+        const updated = createUpdatedReportHook(instance, client)
 
-        if (dataReport) {
+        if (beforeUpdate) {
           if (instance.$options?.beforeUpdate) {
             const arr = [...instance.$options.beforeUpdate]
-            arr.push(dataReport)
+            arr.push(beforeUpdate)
             instance.$set!(instance.$options, 'beforeUpdate', arr)
           }
           else if (instance.$options) {
-            instance.$set!(instance.$options, 'beforeUpdate', [dataReport])
+            instance.$set!(instance.$options, 'beforeUpdate', [beforeUpdate])
+          }
+        }
+
+        if (updated) {
+          if (instance.$options?.updated) {
+            const arr = [...instance.$options.updated]
+            arr.push(updated)
+            instance.$set!(instance.$options, 'updated', arr)
+          }
+          else if (instance.$options) {
+            instance.$set!(instance.$options, 'updated', [updated])
           }
         }
 

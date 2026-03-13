@@ -67,6 +67,10 @@ export const vueScanPlugin: DevpilotPlugin = {
               .optional()
               .describe('Only return components with update count >= this value'),
 
+            minRenderTime: z.number()
+              .optional()
+              .describe('Only return events with render time >= this value (ms)'),
+
             onlyInViewport: z.boolean()
               .optional()
               .describe('Only return updates that occurred in viewport'),
@@ -79,7 +83,7 @@ export const vueScanPlugin: DevpilotPlugin = {
               .default(false)
               .describe('Include raw update events in addition to component summaries. Usually not needed'),
 
-            sortBy: z.enum(['totalUpdates', 'updatesPerSecond', 'componentName'])
+            sortBy: z.enum(['totalUpdates', 'updatesPerSecond', 'renderTime', 'componentName'])
               .default('totalUpdates')
               .describe('Sort components by field'),
           }),

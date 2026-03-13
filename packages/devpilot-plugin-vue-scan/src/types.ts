@@ -3,6 +3,9 @@ export interface ComponentUpdateEvent {
   timestamp: number
   componentName: string
   componentId: string
+  phase: 'mount' | 'update'
+  renderTime?: number
+  fps: number
   updateCount: number
   bounds: {
     width: number
@@ -21,6 +24,8 @@ export interface ComponentSummary {
   sourceLocation?: string
   totalUpdates: number
   updatesPerSecond: number
+  avgRenderTime?: number
+  avgFps?: number
   firstUpdate: number
   lastUpdate: number
 }
@@ -30,10 +35,11 @@ export interface QueryParams {
   componentName?: string
   timeRange?: { start: number, end: number }
   minUpdateCount?: number
+  minRenderTime?: number
   onlyInViewport?: boolean
   onlyUserComponents?: boolean
   includeRawEvents?: boolean
-  sortBy: 'totalUpdates' | 'updatesPerSecond' | 'componentName'
+  sortBy: 'totalUpdates' | 'updatesPerSecond' | 'renderTime' | 'componentName'
 }
 
 export interface QueryResult {

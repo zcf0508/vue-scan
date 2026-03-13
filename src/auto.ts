@@ -1,6 +1,6 @@
 import type { VNodeNormalizedChildren } from 'vue-demi'
 import { throttle } from 'lodash-es'
-import { type BACE_VUE_INSTANCE, createOnBeforeUnmountHook, createOnBeforeUpdateHook } from './core/hook'
+import { type BACE_VUE_INSTANCE, createOnBeforeUnmountHook, createOnBeforeUpdateHook, createOnMountedHook, createOnUpdatedHook } from './core/hook'
 import plugin from './index'
 import { createDomMutationObserver } from './utils/MutationObserverDom'
 
@@ -21,6 +21,8 @@ import { createDomMutationObserver } from './utils/MutationObserverDom'
       plugin,
       createOnBeforeUpdateHook,
       createOnBeforeUnmountHook,
+      createOnMountedHook,
+      createOnUpdatedHook,
     }
   }
 })()
@@ -74,6 +76,7 @@ function injectVueScan(node: HTMLElement) {
       function mixin(vueInstance: BACE_VUE_INSTANCE) {
         if (vueInstance.subTree?.el && vueInstance?.__vue_scan_injected__ !== true) {
           const onBeforeUpdate = createOnBeforeUpdateHook(vueInstance)
+          const onUpdated = createOnUpdatedHook(vueInstance)
           const onBeforeUnmount = createOnBeforeUnmountHook(vueInstance)
 
           if (onBeforeUpdate) {
@@ -82,6 +85,15 @@ function injectVueScan(node: HTMLElement) {
             }
             else {
               vueInstance!.bu = [onBeforeUpdate]
+            }
+          }
+
+          if (onUpdated) {
+            if (vueInstance?.u) {
+              vueInstance.u.push(onUpdated)
+            }
+            else {
+              vueInstance!.u = [onUpdated]
             }
           }
 
@@ -131,6 +143,7 @@ function injectVueScan(node: HTMLElement) {
       function mixin(vueInstance: BACE_VUE_INSTANCE) {
         if (vueInstance?.$el && vueInstance?.__vue_scan_injected__ !== true) {
           const onBeforeUpdate = createOnBeforeUpdateHook(vueInstance)
+          const onUpdated = createOnUpdatedHook(vueInstance)
           const onBeforeUnmount = createOnBeforeUnmountHook(vueInstance)
 
           if (onBeforeUpdate) {
@@ -141,6 +154,17 @@ function injectVueScan(node: HTMLElement) {
             }
             else if (vueInstance?.$options) {
               vueInstance.$set(vueInstance.$options, 'beforeUpdate', [onBeforeUpdate])
+            }
+          }
+
+          if (onUpdated) {
+            if (vueInstance?.$options?.updated) {
+              const newUpdated = [...vueInstance.$options.updated]
+              newUpdated.push(onUpdated)
+              vueInstance.$set(vueInstance.$options, 'updated', newUpdated)
+            }
+            else if (vueInstance?.$options) {
+              vueInstance.$set(vueInstance.$options, 'updated', [onUpdated])
             }
           }
 

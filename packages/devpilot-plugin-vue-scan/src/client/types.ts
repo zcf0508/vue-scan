@@ -4,6 +4,9 @@ export interface VueScanServerMethods {
     timestamp: number
     componentName: string
     componentId: string
+    phase: 'mount' | 'update'
+    renderTime?: number
+    fps: number
     updateCount: number
     bounds: {
       width: number

@@ -1,3 +1,4 @@
+import type { RenderMeta } from './fps'
 import { throttle } from 'lodash-es'
 import { getComponentBoundingRect, getInstanceName } from './utils'
 
@@ -295,6 +296,7 @@ export function highlight(
   instance: any,
   uuid: string,
   flashCount: number,
+  meta?: RenderMeta,
   options?: {
     hideComponentName?: boolean
   } & HighlightCanvasOptions,
@@ -308,7 +310,15 @@ export function highlight(
   if (!isInViewport(bounds))
     return
 
-  const name = `${getInstanceName(instance)} x ${flashCount}`
+  let name = `${getInstanceName(instance)} x ${flashCount}`
+  if (meta) {
+    const parts: string[] = [meta.phase]
+    if (meta.renderTime != null)
+      parts.push(`${meta.renderTime.toFixed(1)}ms`)
+    if (meta.fps > 0)
+      parts.push(`${meta.fps}fps`)
+    name += ` · ${parts.join(' · ')}`
+  }
   highlightCanvas?.drawHighlight(bounds, uuid, name, flashCount, options?.hideComponentName)
 }
 
