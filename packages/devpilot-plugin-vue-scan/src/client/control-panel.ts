@@ -107,6 +107,7 @@ export function createControlPanel(client: DevpilotClient<VueScanServerMethods>)
   }
 
   document.body.appendChild(panel)
+  panel.style.display = 'none'
   updatePanel()
 
   // Update event count periodically

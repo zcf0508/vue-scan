@@ -29,9 +29,12 @@ function setup() {
     // 3. Create control panel
     createControlPanel(client)
 
-    console.log('✅ Vue Scan DevPilot Plugin loaded')
-    console.log('   Press Ctrl+Shift+V to toggle control panel')
-    console.log('   Press Ctrl+Shift+R to toggle recording')
+    // eslint-disable-next-line no-console
+    console.log(
+      '%c 🔍 Vue Scan DevPilot %c Ctrl+Shift+V → Toggle Panel | Ctrl+Shift+R → Toggle Recording ',
+      'background:#35495e;color:#fff;padding:2px 4px;border-radius:3px 0 0 3px;',
+      'background:#41b883;color:#fff;padding:2px 4px;border-radius:0 3px 3px 0;',
+    )
   })
 }
 
