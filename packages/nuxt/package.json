@@ -1,7 +1,7 @@
 {
   "name": "z-vue-scan-nuxt-module",
   "type": "module",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "description": "z-vue-scan Nuxt module",
   "license": "MIT",
   "repository": "https://github.com/zcf0508/vue-scan",
