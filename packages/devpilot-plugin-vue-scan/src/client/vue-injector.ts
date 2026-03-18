@@ -313,16 +313,43 @@ function createDomMutationObserver(
 
 export function injectVueScanWithRuntimeControl(client: DevpilotClient<VueScanServerMethods>): void {
   const vue2ObserverMap = new WeakMap<HTMLElement, MutationObserver>()
+  let vue3Found = false
+  let checkCount = 0
+  const maxChecks = 100 // ~60 seconds with 600ms throttle
+
+  // eslint-disable-next-line no-console
+  console.log('[Vue Scan] Starting Vue app detection...')
 
   const documentObserver = new MutationObserver(throttle(() => {
     const mountDoms = getMountDoms()
-    if (mountDoms.length === 0)
+    checkCount++
+
+    if (mountDoms.length === 0) {
+      if (checkCount === 1) {
+        // eslint-disable-next-line no-console
+        console.log('[Vue Scan] No Vue app found yet, waiting for mount...')
+      }
+      if (checkCount >= maxChecks) {
+        // eslint-disable-next-line no-console
+        console.warn('[Vue Scan] Timeout: No Vue app detected after 60s')
+        documentObserver.disconnect()
+      }
       return
+    }
+
+    // eslint-disable-next-line no-console
+    console.log(`[Vue Scan] Found ${mountDoms.length} Vue mount point(s)`)
 
     const isVue3 = mountDoms.some((mountDom) => {
       // @ts-expect-error vue internal
       return !!mountDom.__vue_app__
     })
+
+    if (isVue3 && !vue3Found) {
+      // eslint-disable-next-line no-console
+      console.log('[Vue Scan] Vue 3 app detected, injecting scanner...')
+      vue3Found = true
+    }
 
     if (isVue3) {
       documentObserver.disconnect()
@@ -336,6 +363,8 @@ export function injectVueScanWithRuntimeControl(client: DevpilotClient<VueScanSe
       }
       else {
         if (!vue2ObserverMap.get(mountDom)) {
+          // eslint-disable-next-line no-console
+          console.log('[Vue Scan] Vue 2 app detected, injecting scanner...')
           vue2ObserverMap.set(mountDom, createDomMutationObserver(
             () => mountDom,
             () => injectVueScan(mountDom, client),
@@ -355,7 +384,11 @@ export function injectVueScanWithRuntimeControl(client: DevpilotClient<VueScanSe
 
   // Try immediate injection
   const mountDoms = getMountDoms()
-  mountDoms.forEach((mountDom) => {
-    injectVueScan(mountDom, client)
-  })
+  if (mountDoms.length > 0) {
+    // eslint-disable-next-line no-console
+    console.log(`[Vue Scan] ${mountDoms.length} Vue mount point(s) found immediately`)
+    mountDoms.forEach((mountDom) => {
+      injectVueScan(mountDom, client)
+    })
+  }
 }
