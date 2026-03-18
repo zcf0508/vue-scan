@@ -1,0 +1,27 @@
+packages/devpilot-plugin-vue-scan/src/client/control-panel.ts
+  ea4a61a809de8fcc 186
+packages/devpilot-plugin-vue-scan/src/client/index.ts
+  ea4a61a809de8fcc 4,17-18,23-24,26-28,31-37,47-49,57-62
+packages/devpilot-plugin-vue-scan/src/client/vue-injector.ts
+  ea4a61a809de8fcc 316-318,320-321,325-336,338,340-341,348-352,366-367,387-389,393
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "1026c219476273d684bd03c147a4defd8c87081a",
+  "prompts": {
+    "ea4a61a809de8fcc": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_301438e00ffey9t5XlVWXJbdmg",
+        "model": "moonshot-cn/kimi-k2.5"
+      },
+      "human_author": "zcf0508 <zcf0508@live.com>",
+      "messages": [],
+      "total_additions": 67,
+      "total_deletions": 13,
+      "accepted_lines": 61,
+      "overriden_lines": 0
+    }
+  }
+}
