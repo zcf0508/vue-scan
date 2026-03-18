@@ -1,6 +1,6 @@
 {
   "name": "vue2",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check build-only",

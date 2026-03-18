@@ -1,7 +1,7 @@
 {
   "name": "devpilot-plugin-vue-scan",
   "type": "module",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "Vue Scan plugin for DevPilot",
   "author": "zcf0508 <zcf0508@live.com>",
   "license": "MIT",
